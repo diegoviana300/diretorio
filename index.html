@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diretório Law Enforcement</title>
+    <title>⚖️Diretório Law Enforcement⚖️</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Estilos de Impressão */
@@ -99,19 +99,13 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans antialiased">
 
-    <!-- Header -->
     <header class="p-6 text-center">
-        <div class="flex justify-center items-center relative">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">Diretório Law Enforcement</h1>
-            <!-- Botão de Tema (Sol/Lua) -->
-            <button id="theme-toggle" class="theme-toggle absolute right-6 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <svg id="theme-icon-dark" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            </button>
+    <div class="flex justify-center items-center relative">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">Diretório Law Enforcement</h1>
         </div>
-        <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">Consulta de contatos para envio de ofícios</p>
-        <p id="last-updated" class="text-sm text-gray-500 dark:text-gray-500 mt-1">Última atualização: 11/11/2025</p>
-    </header>
+    <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">Consulta de contatos para envio de ofícios</p>
+    <p id="last-updated" class="text-sm text-gray-500 dark:text-gray-500 mt-1">Última atualização: 11/11/2025</p>
+</header>
 
     <!-- Controles (Busca e Filtros) -->
     <main class="max-w-7xl mx-auto p-4 md:p-6">
@@ -305,9 +299,7 @@
         const loadingSpinner = document.getElementById('loading-spinner');
         const errorMessage = document.getElementById('error-message');
         const backToTopBtn = document.getElementById('back-to-top');
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIconLight = document.getElementById('theme-icon-light');
-        const themeIconDark = document.getElementById('theme-icon-dark');
+        
         const adminModeBtn = document.getElementById('admin-mode-btn');
         const adminControls = document.querySelectorAll('.admin-controls');
         const addNewCardBtn = document.getElementById('add-new-card-btn');
@@ -329,7 +321,6 @@
          * Ponto de entrada. Chamado quando o DOM está pronto.
          */
         document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
             initEventListeners();
             fetchData();
         });
@@ -444,8 +435,7 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
             
-            // Tema
-            themeToggle.addEventListener('click', toggleTheme);
+            
 
             // --- Admin ---
             adminModeBtn.addEventListener('click', toggleAdminMode);
@@ -640,7 +630,8 @@
             
             // Esconde após 3 segundos
             setTimeout(() => {
-                toast.classList.add('translate-x-full', 'opacity-0');
+                toast.classList.remove('translate-x-0', 'opacity-100'); // Remove as classes de "mostrar"
+toast.classList.add('translate-x-full', 'opacity-0');
             }, 3000);
         }
         
@@ -708,37 +699,7 @@
             }
         }
         
-        /**
-         * Inicializa o tema (claro/escuro) com base na preferência do usuário.
-         */
-        function initTheme() {
-    // Verifica se o usuário já escolheu "light" e salvou no localStorage
-    // Se sim, muda para light.
-    if (localStorage.getItem('theme') === 'light') {
-        document.documentElement.classList.remove('dark');
-        themeIconLight.classList.add('hidden');
-        themeIconDark.classList.remove('hidden');
-    }
-    // Se não houver nada salvo (ou se for 'dark'), 
-    // não faz nada, pois o HTML já carregou escuro (Passos 1 e 2).
-}
-
-        /**
-         * Alterna o tema (claro/escuro).
-         */
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            if (isDark) {
-                localStorage.setItem('theme', 'dark');
-                themeIconLight.classList.remove('hidden');
-                themeIconDark.classList.add('hidden');
-            } else {
-                localStorage.setItem('theme', 'light');
-                themeIconLight.classList.add('hidden');
-                themeIconDark.classList.remove('hidden');
-            }
-        }
-
+             
         // --- FUNÇÕES DE ADMIN (MODAL, CRUD) ---
 
         /**
