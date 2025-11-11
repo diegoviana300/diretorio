@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚖️Diretório Law Enforcement⚖️</title>
+    <title>⚖️Diretório Law Enforcement</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Estilos de Impressão */
@@ -101,7 +101,7 @@
 
     <header class="p-6 text-center">
     <div class="flex justify-center items-center relative">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">Diretório Law Enforcement</h1>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">⚖️ Diretório Law Enforcement ⚖️</h1>
         </div>
     <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">Consulta de contatos para envio de ofícios</p>
     <p id="last-updated" class="text-sm text-gray-500 dark:text-gray-500 mt-1">Última atualização: 11/11/2025</p>
@@ -110,7 +110,7 @@
     <!-- Controles (Busca e Filtros) -->
     <main class="max-w-7xl mx-auto p-4 md:p-6">
         <div class="search-container mb-6 sticky top-4 z-30 bg-gray-100 dark:bg-gray-900 py-2">
-            <input type="text" id="search-box" placeholder="Pesquise por nome, e-mail ou categoria..." class="w-full p-4 rounded-lg border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:border-blue-500">
+            <input type="text" id="search-box" placeholder="🔍 Pesquise por nome, e-mail ou categoria..." class="w-full p-4 rounded-lg border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:border-blue-500">
         </div>
 
         <div class="filter-buttons mb-6 flex flex-wrap justify-center gap-2">
@@ -121,6 +121,7 @@
             <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Aplicativos">Aplicativos</button>
             <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Backbones">Backbones</button>
         </div>
+</div> <p id="results-count" class="text-sm text-gray-500 dark:text-gray-400 mb-4 ml-2"></p>
 
 <!-- Botões Flutuantes (Admin e Voltar ao Topo) -->
     <div class="admin-fab-group">
@@ -265,11 +266,11 @@
         const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhnhciF5ly9THdTsrBGhEDxKabB8vcAKs0-6BeeTQU6dRRzfVKLucDR-_X44CqN5PL/exec';
         
         // 3. Senha para o Modo Edição
-        const ADMIN_PASSWORD = "1234";
+        const ADMIN_PASSWORD = "Gaeco2025";
         
         // 4. E-mail para "Sugerir Correção"
         // !!! MUDE "seu-email@admin.com" PARA O SEU E-MAIL !!!
-        const ADMIN_SUGGESTION_EMAIL = "seu-email@admin.com";
+        const ADMIN_SUGGESTION_EMAIL = "diegoviana300@gmail.com";
 
         // --- FIM DA CONFIGURAÇÃO ---
 
@@ -313,6 +314,7 @@
         const saveSpinner = document.getElementById('save-spinner');
         const editForm = document.getElementById('edit-form');
         const toast = document.getElementById('toast');
+	const resultsCountEl = document.getElementById('results-count');
 
 
         // --- FUNÇÕES DE INICIALIZAÇÃO E CARREGAMENTO ---
@@ -457,7 +459,17 @@
          * Renderiza a lista de cards no grid.
          */
         function renderCards(data) {
-            cardGrid.innerHTML = '';
+        const visibleCount = data.length;
+            const totalCount = allData.length;
+
+            if (resultsCountEl) { 
+                if (visibleCount === totalCount) {
+                    resultsCountEl.textContent = `Exibindo todos os ${totalCount} contatos.`;
+                } else {
+                    resultsCountEl.textContent = `Exibindo ${visibleCount} de ${totalCount} contatos.`;
+                }
+            }    
+	cardGrid.innerHTML = '';
             if (data.length === 0) {
                 noResults.style.display = 'block';
                 return;
@@ -511,9 +523,9 @@
                     ${renderSection('Links/Portais', item.urls, 'link')}
                     ${renderSection('E-mails', item.emails, 'email')}
                     ${renderSection('Telefones', item.telefones, 'tel')}
-                    ${renderSection('Endereços', item.enderecos, 'text')}
-                    ${renderSection('Observações', item.notas, 'text')}
-                    ${renderSection('Obs. Interna', item.obs, 'text', 'italic')}
+                    ${renderSection('Endereços', item.enderecos, 'address')}
+                    ${renderSection('Observações', item.notas, 'fulltext')}
+	            ${renderSection('Obs. Interna', item.obs, 'fulltext', 'italic')}
                 </div>
                 
                 <div class="card-actions bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 p-3 text-right">
@@ -574,7 +586,17 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 6h6m0 0v6m0-6l-6-6"></path></svg>
                                 </button>
                             </div>`;
-                    case 'text':
+                    case 'address':
+                    return `
+                        <div class="flex justify-between items-center group">
+                            <p class="block">${cleanItem}</p>
+                            <button class="copy-btn hidden group-hover:block ml-2 text-gray-400 hover:text-blue-500" data-clipboard="${cleanItem}" title="Copiar endereço">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 6h6m0 0v6m0-6l-6-6"></path></svg>
+                            </button>
+                        </div>`;
+		    case 'fulltext':
+                    return `<p class="block ${textClass}">${cleanItem}</p>`;
+		    case 'text':
                         return `<p class="block truncate ${textClass}">${cleanItem}</p>`;
                     default:
                         return `<p class="block truncate ${textClass}">${cleanItem}</p>`;
