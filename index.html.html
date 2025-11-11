@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diretório Law Enforcement</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos de Impressão */
+        @media print {
+            body {
+                font-family: 'Times New Roman', Times, serif;
+                background-color: #fff;
+                color: #000;
+            }
+            header, .filter-buttons, .admin-controls, .search-container, .card-actions, .theme-toggle, .back-to-top {
+                display: none !important;
+            }
+            main {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #card-grid {
+                display: block !important;
+                grid-template-columns: 1fr !important;
+            }
+	    .dark body {
+        background-color: #111827; /* gray-900 */
+    }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ccc;
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+                background-color: #fff !important;
+                color: #000 !important;
+            }
+            .card h3, .card h4, .card p, .card a {
+                color: #000 !important;
+            }
+            .card a:after {
+                content: " (" attr(href) ")";
+                font-size: 0.9em;
+                color: #333;
+            }
+            .card-tag {
+                border: 1px solid #aaa;
+                color: #333;
+                background-color: #f0f0f0;
+            }
+        }
+
+        /* Animação de Carregamento */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loader {
+            border-width: 4px;
+            border-style: solid;
+            border-color: transparent transparent #3b82f6 #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Estilos do Modal */
+        #modal-backdrop {
+            transition: opacity 0.3s ease-in-out;
+        }
+        #modal-content {
+            transition: all 0.3s ease-in-out;
+            transform: translateY(-20px);
+        }
+        
+        /* Estilos dos Botões de Admin Flutuantes */
+        .admin-fab-group {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 40; /* Abaixo do modal */
+        }
+        .admin-fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease-in-out;
+        }
+        .admin-fab:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen font-sans antialiased">
+
+    <!-- Header -->
+    <header class="p-6 text-center">
+        <div class="flex justify-center items-center relative">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">Diretório Law Enforcement</h1>
+            <!-- Botão de Tema (Sol/Lua) -->
+            <button id="theme-toggle" class="theme-toggle absolute right-6 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="theme-icon-dark" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+        <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">Consulta de contatos para envio de ofícios</p>
+        <p id="last-updated" class="text-sm text-gray-500 dark:text-gray-500 mt-1">Última atualização: 11/11/2025</p>
+    </header>
+
+    <!-- Controles (Busca e Filtros) -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6">
+        <div class="search-container mb-6 sticky top-4 z-30 bg-gray-100 dark:bg-gray-900 py-2">
+            <input type="text" id="search-box" placeholder="Pesquise por nome, e-mail ou categoria..." class="w-full p-4 rounded-lg border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:border-blue-500">
+        </div>
+
+        <div class="filter-buttons mb-6 flex flex-wrap justify-center gap-2">
+            <button class="filter-btn active bg-blue-600 text-white px-4 py-2 rounded-full" data-filter="all">Todos</button>
+            <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Plataformas">Plataformas</button>
+            <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Financeiro">Financeiro</button>
+            <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Operadoras">Operadoras</button>
+            <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Aplicativos">Aplicativos</button>
+            <button class="filter-btn bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-full" data-filter="Backbones">Backbones</button>
+        </div>
+
+<!-- Botões Flutuantes (Admin e Voltar ao Topo) -->
+    <div class="admin-fab-group">
+        
+        <button id="admin-mode-btn" class="admin-fab bg-blue-600 hover:bg-blue-700" title="Modo Edição">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.536L16.732 3.732z"></path></svg>
+        </button>
+        
+        <div class="admin-controls hidden">
+            <button id="add-new-card-btn" class="admin-fab bg-green-500 hover:bg-green-600" title="Adicionar Novo Contato">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </button>
+        </div>
+
+    </div> <button id="back-to-top" class="back-to-top hidden fixed bottom-6 right-6 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-opacity z-40">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+    </button>
+        
+</div>
+        <div class="admin-controls hidden">
+            <button id="add-new-card-btn" class="admin-fab bg-green-500 hover:bg-green-600" title="Adicionar Novo Contato">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Grid de Cards -->
+        <div id="loading-spinner" class="flex flex-col items-center justify-center text-center p-10">
+            <div class="loader w-12 h-12 rounded-full"></div>
+            <p class="text-lg text-gray-600 dark:text-gray-400 mt-4">Carregando dados da planilha...</p>
+        </div>
+
+        <div id="error-message" class="hidden text-center p-10 bg-red-100 dark:bg-red-900 border-2 border-red-300 dark:border-red-700 rounded-lg">
+            <h3 class="text-xl font-semibold text-red-800 dark:text-red-200">Erro ao Carregar Dados</h3>
+            <p class="text-red-600 dark:text-red-300 mt-2">Não foi possível carregar os dados da Planilha Google.</p>
+            <p class="text-red-600 dark:text-red-300">Por favor, verifique se a planilha está "Publicada na web" como CSV.</p>
+        </div>
+        
+        <div id="card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards serão inseridos aqui pelo JavaScript -->
+        </div>
+
+        <div id="no-results" class="hidden text-center p-10">
+            <p class="text-xl text-gray-500">Nenhum resultado encontrado.</p>
+        </div>
+
+    </main>
+
+    
+    
+    <!-- Modal (Formulário de Edição) -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div id="modal-content" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto opacity-0 -translate-y-5">
+            <form id="edit-form">
+                <!-- Cabeçalho do Modal -->
+                <div class="flex justify-between items-center p-5 border-b dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+                    <h3 id="modal-title" class="text-2xl font-semibold">Editar Contato</h3>
+                    <button type="button" id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <!-- Corpo do Formulário -->
+                <div class="p-6 space-y-4">
+                    <!-- Campo oculto para o nome original, usado para encontrar a linha -->
+                    <input type="hidden" id="form-nome-original" name="nomeOriginal">
+
+                    <div>
+                        <label for="form-nome" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome <span class="text-red-500">*</span></label>
+                        <input type="text" id="form-nome" name="nome" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500" required>
+                    </div>
+
+                    <div>
+                        <label for="form-categoria" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria <span class="text-red-500">*</span></label>
+                        <select id="form-categoria" name="categoria" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500" required>
+                            <option value="Plataformas">Plataformas</option>
+                            <option value="Financeiro">Financeiro</option>
+                            <option value="Operadoras">Operadoras</option>
+                            <option value="Aplicativos">Aplicativos</option>
+                            <option value="Backbones">Backbones</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="form-urls" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URLs (separados por ;)</label>
+                        <textarea id="form-urls" name="urls" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="form-emails" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-mails (separados por ;)</label>
+                        <textarea id="form-emails" name="emails" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="form-telefones" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Telefones (separados por ;)</label>
+                        <textarea id="form-telefones" name="telefones" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="form-enderecos" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Endereços (separados por ;)</label>
+                        <textarea id="form-enderecos" name="enderecos" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="form-notas" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
+                        <input type="text" id="form-notas" name="notas" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label for="form-obs" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Obs (Uso Interno)</label>
+                        <input type="text" id="form-obs" name="obs" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Rodapé do Modal (Ações) -->
+                <div class="p-5 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800 sticky bottom-0 z-10">
+                    <div class="flex justify-end gap-3">
+                        <button type="button" id="cancel-modal-btn" class="px-5 py-2 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">Cancelar</button>
+                        <button type="submit" id="save-modal-btn" class="px-5 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2">
+                            <span id="save-btn-text">Salvar</span>
+                            <div id="save-spinner" class="hidden loader w-5 h-5 rounded-full border-2 border-transparent border-t-white border-r-white"></div>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast de Notificação -->
+    <div id="toast" class="fixed bottom-5 right-5 p-4 rounded-lg shadow-xl text-white max-w-xs transition-all duration-300 translate-x-full opacity-0 z-50">
+        <p id="toast-message"></p>
+    </div>
+
+
+    <script>
+        // --- CONFIGURAÇÃO PRINCIPAL ---
+        
+        // 1. Link para a Planilha Google (publicada como CSV)
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRWfIYtV64nnp9QmOr3izPfBXfozcixgOpuagR5aCO1Tpj55q9xhG_iLFrJM0pK4s7L4ZbfscYABvgA/pub?output=csv';
+        
+        // 2. Link para o "Intermediário" (Google Apps Script)
+        const GOOGLE_APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhnhciF5ly9THdTsrBGhEDxKabB8vcAKs0-6BeeTQU6dRRzfVKLucDR-_X44CqN5PL/exec';
+        
+        // 3. Senha para o Modo Edição
+        const ADMIN_PASSWORD = "1234";
+        
+        // 4. E-mail para "Sugerir Correção"
+        // !!! MUDE "seu-email@admin.com" PARA O SEU E-MAIL !!!
+        const ADMIN_SUGGESTION_EMAIL = "seu-email@admin.com";
+
+        // --- FIM DA CONFIGURAÇÃO ---
+
+
+        // Variáveis globais
+        let allData = []; // Cache local de todos os dados da planilha
+        let isAdmin = false; // Controla se o modo admin está ativo
+
+        // Mapeamento de Cabeçalhos (o que esperamos da planilha)
+        const HEADERS_MAP = {
+            "nome": "nome",
+            "categoria": "categoria",
+            "urls": "urls",
+            "emails": "emails",
+            "telefones": "telefones",
+            "enderecos": "enderecos",
+            "notas": "notas",
+            "obs": "obs"
+        };
+        const EXPECTED_HEADERS = Object.keys(HEADERS_MAP);
+
+        // Elementos do DOM
+        const searchBox = document.getElementById('search-box');
+        const cardGrid = document.getElementById('card-grid');
+        const noResults = document.getElementById('no-results');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessage = document.getElementById('error-message');
+        const backToTopBtn = document.getElementById('back-to-top');
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIconLight = document.getElementById('theme-icon-light');
+        const themeIconDark = document.getElementById('theme-icon-dark');
+        const adminModeBtn = document.getElementById('admin-mode-btn');
+        const adminControls = document.querySelectorAll('.admin-controls');
+        const addNewCardBtn = document.getElementById('add-new-card-btn');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelModalBtn = document.getElementById('cancel-modal-btn');
+        const saveModalBtn = document.getElementById('save-modal-btn');
+        const saveBtnText = document.getElementById('save-btn-text');
+        const saveSpinner = document.getElementById('save-spinner');
+        const editForm = document.getElementById('edit-form');
+        const toast = document.getElementById('toast');
+
+
+        // --- FUNÇÕES DE INICIALIZAÇÃO E CARREGAMENTO ---
+
+        /**
+         * Ponto de entrada. Chamado quando o DOM está pronto.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            initEventListeners();
+            fetchData();
+        });
+
+        /**
+         * Busca os dados da Planilha Google.
+         */
+        async function fetchData() {
+            loadingSpinner.style.display = 'flex';
+            errorMessage.style.display = 'none';
+            cardGrid.innerHTML = '';
+            
+            try {
+                const response = await fetch(GOOGLE_SHEET_CSV_URL);
+                if (!response.ok) {
+                    throw new Error(`Falha na rede: ${response.status} ${response.statusText}`);
+                }
+                const csvText = await response.text();
+                allData = parseCSV(csvText);
+                
+                if (allData.length === 0) {
+                    throw new Error("CSV veio vazio ou em formato incorreto.");
+                }
+
+                renderCards(allData);
+                loadingSpinner.style.display = 'none';
+
+            } catch (error) {
+                console.error("Erro ao carregar dados:", error);
+                loadingSpinner.style.display = 'none';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        /**
+         * Converte o texto CSV em um array de objetos.
+         */
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) return [];
+
+            // Remove o '\r' e as aspas
+            const cleanHeader = lines[0].trim().replace(/\r/g, '').replace(/"/g, '');
+            const headers = cleanHeader.split(',');
+            
+            const headerIndices = {};
+            
+            headers.forEach((header, index) => {
+                const lowerHeader = header.toLowerCase().trim();
+                if (EXPECTED_HEADERS.includes(lowerHeader)) {
+                    headerIndices[lowerHeader] = index;
+                }
+            });
+
+            // Verifica se o cabeçalho 'nome' existe
+            if (headerIndices['nome'] === undefined) {
+                console.error("Erro Crítico: A coluna 'Nome' não foi encontrada na planilha. Verifique o cabeçalho.");
+                return [];
+            }
+            
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim().replace(/\r/g, '');
+                if (!line) continue; // Pula linhas em branco
+                
+                // Regex para tratar CSV com aspas
+                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
+
+                if (values.length >= headers.length) {
+                    
+                    const nomeIndex = headerIndices['nome'];
+                    const nomeValue = values[nomeIndex] ? values[nomeIndex].trim() : '';
+
+                    // PULA A LINHA SE O NOME ESTIVER VAZIO
+                    if (!nomeValue) {
+                        continue;
+                    }
+
+                    const entry = {};
+                    for (const key in headerIndices) {
+                        const index = headerIndices[key];
+                        entry[key] = values[index] || '';
+                    }
+                    data.push(entry);
+                }
+            }
+            return data;
+        }
+
+        /**
+         * Inicializa todos os event listeners da página.
+         */
+        function initEventListeners() {
+            // Busca e Filtros
+            searchBox.addEventListener('input', handleSearchAndFilter);
+            filterButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('active', 'bg-blue-600', 'text-white');
+                        btn.classList.add('bg-gray-200', 'dark:bg-gray-700');
+                    });
+                    e.currentTarget.classList.add('active', 'bg-blue-600', 'text-white');
+                    e.currentTarget.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+                    handleSearchAndFilter();
+                });
+            });
+            
+            // Botões Flutuantes
+            window.addEventListener('scroll', handleScroll);
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            
+            // Tema
+            themeToggle.addEventListener('click', toggleTheme);
+
+            // --- Admin ---
+            adminModeBtn.addEventListener('click', toggleAdminMode);
+            addNewCardBtn.addEventListener('click', handleAddNew);
+            
+            // --- Modal ---
+            modalBackdrop.addEventListener('click', (e) => {
+                if (e.target === modalBackdrop) closeModal();
+            });
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelModalBtn.addEventListener('click', closeModal);
+            editForm.addEventListener('submit', handleFormSubmit);
+        }
+
+        
+        // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
+
+        /**
+         * Renderiza a lista de cards no grid.
+         */
+        function renderCards(data) {
+            cardGrid.innerHTML = '';
+            if (data.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            const fragment = document.createDocumentFragment();
+            data.forEach(item => {
+                fragment.appendChild(createCard(item));
+            });
+            cardGrid.appendChild(fragment);
+        }
+
+        /**
+         * Cria um único card HTML.
+         */
+        function createCard(item) {
+            const card = document.createElement('div');
+            card.className = "card bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col transition-all duration-300";
+            card.setAttribute('data-category', item.categoria || 'Outros');
+            
+            // Serializa o objeto de dados e o armazena no elemento
+            // Isso facilita a leitura quando formos editar
+            card.setAttribute('data-item', JSON.stringify(item));
+            
+            const category = item.categoria || 'Sem Categoria';
+            const categoryColor = getCategoryColor(category);
+            
+            // (Dentro da função createCard)
+        let adminButtons = `
+            <div class="admin-controls ${isAdmin ? '' : 'hidden'} absolute top-2 right-2 flex gap-2">
+                <button class="edit-btn p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors" title="Editar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                    <button class="delete-btn p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors" title="Excluir">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            `;
+
+            card.innerHTML = `
+                <div class="p-5 flex-grow relative">
+                    ${adminButtons}
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">${item.nome || 'Sem Nome'}</h3>
+                        <span class="card-tag text-xs font-semibold px-3 py-1 rounded-full ${categoryColor}">
+                            ${category}
+                        </span>
+                    </div>
+                    
+                    ${renderSection('Links/Portais', item.urls, 'link')}
+                    ${renderSection('E-mails', item.emails, 'email')}
+                    ${renderSection('Telefones', item.telefones, 'tel')}
+                    ${renderSection('Endereços', item.enderecos, 'text')}
+                    ${renderSection('Observações', item.notas, 'text')}
+                    ${renderSection('Obs. Interna', item.obs, 'text', 'italic')}
+                </div>
+                
+                <div class="card-actions bg-gray-50 dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 p-3 text-right">
+                    <a href="mailto:${ADMIN_SUGGESTION_EMAIL}?subject=Sugestão de Correção: ${item.nome}&body=Olá,%0D%0A%0DEu gostaria de sugerir uma correção para o card '${item.nome}':%0D%0A%0D%0A[Descreva sua sugestão aqui]%0D%0A%0D%0AObrigado(a)."
+                       class="text-xs text-blue-500 hover:underline"
+                       target="_blank" rel="noopener noreferrer">Sugerir Correção</a>
+                </div>
+            `;
+            
+            // Adiciona event listeners aos botões de admin (se existirem)
+            const editBtn = card.querySelector('.edit-btn');
+            const deleteBtn = card.querySelector('.delete-btn');
+            
+            if (editBtn) {
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Impede o card de ser clicado
+                    handleEdit(item);
+                });
+            }
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleDelete(item);
+                });
+            }
+
+            return card;
+        }
+
+        /**
+         * Função auxiliar para renderizar uma seção de dados (links, emails, etc.).
+         */
+        function renderSection(title, data, type, textClass = '') {
+            if (!data) return '';
+            
+            const items = data.split(';').filter(Boolean); // Filtra itens vazios
+            if (items.length === 0) return '';
+            
+            const content = items.map(item => {
+                const cleanItem = item.trim();
+                switch(type) {
+                    case 'link':
+                        const protocol = cleanItem.startsWith('http') ? '' : 'https://';
+                        return `<a href="${protocol}${cleanItem}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline block truncate">${cleanItem}</a>`;
+                    case 'email':
+                        return `
+                            <div class="flex justify-between items-center group">
+                                <a href="mailto:${cleanItem}" class="text-blue-500 hover:underline block truncate">${cleanItem}</a>
+                                <button class="copy-btn hidden group-hover:block ml-2 text-gray-400 hover:text-blue-500" data-clipboard="${cleanItem}" title="Copiar e-mail">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 6h6m0 0v6m0-6l-6-6"></path></svg>
+                                </button>
+                            </div>`;
+                    case 'tel':
+                        return `
+                            <div class="flex justify-between items-center group">
+                                <a href="tel:${cleanItem}" class="block truncate">${cleanItem}</a>
+                                <button class="copy-btn hidden group-hover:block ml-2 text-gray-400 hover:text-blue-500" data-clipboard="${cleanItem}" title="Copiar telefone">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 6h6m0 0v6m0-6l-6-6"></path></svg>
+                                </button>
+                            </div>`;
+                    case 'text':
+                        return `<p class="block truncate ${textClass}">${cleanItem}</p>`;
+                    default:
+                        return `<p class="block truncate ${textClass}">${cleanItem}</p>`;
+                }
+            }).join('');
+            
+            return `
+                <div class="mb-3">
+                    <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">${title}</h4>
+                    <div class="text-sm space-y-1">${content}</div>
+                </div>
+            `;
+        }
+
+        /**
+         * Retorna a cor da tag de categoria.
+         */
+        function getCategoryColor(category) {
+            switch (category) {
+                case 'Plataformas':
+                    return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+                case 'Financeiro':
+                    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+                case 'Operadoras':
+                    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+                case 'Aplicativos':
+                    return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+                case 'Backbones':
+                    return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
+                default:
+                    return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+            }
+        }
+        
+        /**
+         * Mostra uma notificação (toast) temporária.
+         */
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            
+            // Remove classes antigas
+            toast.classList.remove('bg-green-500', 'bg-red-500', 'translate-x-full', 'opacity-0');
+            
+            if (type === 'success') {
+                toast.classList.add('bg-green-500');
+            } else {
+                toast.classList.add('bg-red-500');
+            }
+            
+            // Anima para dentro
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            toast.classList.add('translate-x-0', 'opacity-100');
+            
+            // Esconde após 3 segundos
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+            }, 3000);
+        }
+        
+        // --- FUNÇÕES DE LÓGICA (BUSCA, FILTRO, TEMA) ---
+
+        /**
+         * Lida com a busca e o filtro combinados.
+         */
+        function handleSearchAndFilter() {
+            const searchTerm = searchBox.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+
+            const filteredData = allData.filter(item => {
+                const categoryMatch = (activeFilter === 'all') || (item.categoria === activeFilter);
+                
+                if (!categoryMatch) return false;
+                
+                // Combina todos os campos em um único texto para busca
+                const searchCorpus = [
+                    item.nome,
+                    item.categoria,
+                    item.urls,
+                    item.emails,
+                    item.telefones,
+                    item.notas,
+                    item.obs
+                ].join(' ').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                return searchCorpus.includes(searchTerm);
+            });
+
+            renderCards(filteredData);
+        }
+        
+        /**
+         * Lida com eventos de clique no grid (para o botão de copiar).
+         */
+        cardGrid.addEventListener('click', (e) => {
+            const copyBtn = e.target.closest('.copy-btn');
+            if (copyBtn) {
+                const textToCopy = copyBtn.dataset.clipboard;
+                // Usa document.execCommand para compatibilidade em iframes
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Copiado para a área de transferência!');
+                } catch (err) {
+                    showToast('Falha ao copiar.', 'error');
+                }
+                document.body.removeChild(textArea);
+            }
+        });
+
+        /**
+         * Lida com eventos de scroll (para o botão "Voltar ao Topo").
+         */
+        function handleScroll() {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.remove('hidden');
+            } else {
+                backToTopBtn.classList.add('hidden');
+            }
+        }
+        
+        /**
+         * Inicializa o tema (claro/escuro) com base na preferência do usuário.
+         */
+        function initTheme() {
+    // Verifica se o usuário já escolheu "light" e salvou no localStorage
+    // Se sim, muda para light.
+    if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+        themeIconLight.classList.add('hidden');
+        themeIconDark.classList.remove('hidden');
+    }
+    // Se não houver nada salvo (ou se for 'dark'), 
+    // não faz nada, pois o HTML já carregou escuro (Passos 1 e 2).
+}
+
+        /**
+         * Alterna o tema (claro/escuro).
+         */
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            if (isDark) {
+                localStorage.setItem('theme', 'dark');
+                themeIconLight.classList.remove('hidden');
+                themeIconDark.classList.add('hidden');
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIconLight.classList.add('hidden');
+                themeIconDark.classList.remove('hidden');
+            }
+        }
+
+        // --- FUNÇÕES DE ADMIN (MODAL, CRUD) ---
+
+        /**
+         * Habilita/Desabilita o modo de edição.
+         */
+        function toggleAdminMode() {
+            if (isAdmin) {
+                // Desligar modo admin (apenas visual)
+                isAdmin = false;
+                adminModeBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                adminModeBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                adminModeBtn.title = "Ativar Modo Edição";
+                
+                adminControls.forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.admin-controls').forEach(el => el.classList.add('hidden'));
+
+                showToast('Modo edição desativado.', 'success');
+            } else {
+    // Tentar ligar modo admin
+    const password = prompt('Digite a senha de administrador:');
+    if (password === ADMIN_PASSWORD) {
+        isAdmin = true;
+        adminModeBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+        adminModeBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        adminModeBtn.title = "Desativar Modo Edição";
+        
+        // Mostra o botão flutuante de "Adicionar"
+        document.querySelector('.admin-fab-group .admin-controls').classList.remove('hidden');
+        
+        // CORREÇÃO: Re-renderiza os cards para mostrar os botões
+        handleSearchAndFilter();
+
+        showToast('Modo edição ativado!', 'success');
+    } else if (password) { // Se o usuário digitou algo, mas errou
+        showToast('Senha incorreta.', 'error');
+    }
+}
+        }
+        
+        /**
+         * Abre o modal de edição (para um item existente).
+         */
+        function handleEdit(item) {
+            modalTitle.textContent = "Editar Contato";
+            editForm.reset(); // Limpa o formulário
+            
+            // Preenche o formulário com os dados do item
+            document.getElementById('form-nome-original').value = item.nome; // Guarda o nome original
+            document.getElementById('form-nome').value = item.nome || '';
+            document.getElementById('form-categoria').value = item.categoria || 'Plataformas';
+            document.getElementById('form-urls').value = (item.urls || '').replace(/;/g, '\n');
+            document.getElementById('form-emails').value = (item.emails || '').replace(/;/g, '\n');
+            document.getElementById('form-telefones').value = (item.telefones || '').replace(/;/g, '\n');
+            document.getElementById('form-enderecos').value = (item.enderecos || '').replace(/;/g, '\n');
+            document.getElementById('form-notas').value = item.notas || '';
+            document.getElementById('form-obs').value = item.obs || '';
+            
+            openModal();
+        }
+
+        /**
+         * Abre o modal para criar um novo item.
+         */
+        function handleAddNew() {
+            modalTitle.textContent = "Adicionar Novo Contato";
+            editForm.reset(); // Limpa o formulário
+            
+            // Limpa o nome original, pois é um item novo
+            document.getElementById('form-nome-original').value = ""; 
+            
+            openModal();
+        }
+
+        /**
+         * Lida com a exclusão de um item.
+         */
+        async function handleDelete(item) {
+            if (!confirm(`Tem certeza que deseja excluir o registro "${item.nome}"?
+Esta ação não pode ser desfeita.`)) {
+                return;
+            }
+
+            // Mostra um feedback de "loading" no card
+            const cardElement = findCardElementByName(item.nome);
+            if (cardElement) {
+                cardElement.style.opacity = '0.5';
+                cardElement.style.pointerEvents = 'none';
+            }
+            
+            try {
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'DELETE', 
+                        data: { nome: item.nome }
+                    }),
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8', // Apps Script espera text/plain
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showToast(`"${item.nome}" excluído com sucesso!`, 'success');
+                    // Remove o item da lista local e recarrega
+                    allData = allData.filter(d => d.nome !== item.nome);
+                    handleSearchAndFilter(); // Recarrega os cards
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                console.error("Erro ao excluir:", error);
+                showToast(`Falha ao excluir: ${error.message}`, 'error');
+                if (cardElement) {
+                    cardElement.style.opacity = '1';
+                    cardElement.style.pointerEvents = 'auto';
+                }
+            }
+        }
+        
+        /**
+         * Lida com o envio (submit) do formulário do modal (Adicionar ou Editar).
+         */
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            // Ativa o spinner do botão
+            setSaveButtonLoading(true);
+
+            const formData = new FormData(e.target);
+            
+            // Pega o nome original (se houver)
+            const nomeOriginal = formData.get('nomeOriginal');
+            
+            // Determina a ação
+            const action = nomeOriginal ? 'EDIT' : 'ADD';
+            
+            // Converte os dados do formulário em um objeto de item
+            // e converte quebras de linha de volta para ';'
+            const data = {
+                nomeOriginal: nomeOriginal,
+                nome: formData.get('nome').trim(),
+                categoria: formData.get('categoria'),
+                urls: (formData.get('urls') || '').replace(/\n/g, ';'),
+                emails: (formData.get('emails') || '').replace(/\n/g, ';'),
+                telefones: (formData.get('telefones') || '').replace(/\n/g, ';'),
+                enderecos: (formData.get('enderecos') || '').replace(/\n/g, ';'),
+                notas: (formData.get('notas') || '').trim(),
+                obs: (formData.get('obs') || '').trim()
+            };
+            
+            // Validação
+            if (!data.nome || !data.categoria) {
+                showToast("Nome e Categoria são obrigatórios.", 'error');
+                setSaveButtonLoading(false);
+                return;
+            }
+
+            try {
+                // Envia para o Apps Script
+                const response = await fetch(GOOGLE_APP_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: action, data: data }),
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast(`Registro ${action === 'EDIT' ? 'atualizado' : 'adicionado'}!`, 'success');
+                    closeModal();
+                    
+                    // Atualiza os dados locais e renderiza
+                    // Para evitar uma nova chamada de 'fetch' (mais rápida)
+                    if (action === 'ADD') {
+                        allData.push(data);
+                    } else { // EDIT
+                        const index = allData.findIndex(d => d.nome === nomeOriginal);
+                        if (index !== -1) {
+                            allData[index] = data; // Atualiza o item
+                        } else {
+                            // Se o nome foi alterado, pode não encontrar
+                            // Por segurança, recarregamos tudo
+                            fetchData();
+                            return;
+                        }
+                    }
+                    // Re-renderiza os cards com os dados locais atualizados
+                    handleSearchAndFilter();
+
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                console.error(`Erro ao ${action}:`, error);
+                showToast(`Falha: ${error.message}`, 'error');
+                setSaveButtonLoading(false);
+            }
+        }
+        
+        /**
+         * Encontra o elemento do card no DOM pelo nome.
+         */
+        function findCardElementByName(name) {
+            const cards = document.querySelectorAll('#card-grid .card');
+            for (const card of cards) {
+                const itemData = JSON.parse(card.getAttribute('data-item'));
+                if (itemData.nome === name) {
+                    return card;
+                }
+            }
+            return null;
+        }
+        
+        /**
+         * Controla o estado de loading do botão Salvar.
+         */
+        function setSaveButtonLoading(isLoading) {
+            if (isLoading) {
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+                saveModalBtn.disabled = true;
+                cancelModalBtn.disabled = true;
+            } else {
+                saveBtnText.classList.remove('hidden');
+                saveSpinner.classList.add('hidden');
+                saveModalBtn.disabled = false;
+                cancelModalBtn.disabled = false;
+            }
+        }
+        
+        /**
+         * Abre o modal (pop-up)
+         */
+        function openModal() {
+            modalBackdrop.classList.remove('hidden');
+            setTimeout(() => {
+                modalBackdrop.classList.remove('opacity-0');
+                modalContent.classList.remove('opacity-0', '-translate-y-5');
+            }, 10);
+            setSaveButtonLoading(false);
+        }
+
+        /**
+         * Fecha o modal (pop-up)
+         */
+        function closeModal() {
+            modalBackdrop.classList.add('opacity-0');
+            modalContent.classList.add('opacity-0', '-translate-y-5');
+            setTimeout(() => {
+                modalBackdrop.classList.add('hidden');
+            }, 300);
+        }
+
+    </script>
+</body>
+</html>
